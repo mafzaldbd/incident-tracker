@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Incident Tracker Dashboard</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; background: #f5f5f5; }
+    h1 { color: #1F3864; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 2rem; }
+    th, td { padding: 0.6rem; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #1F3864; color: white; }
+    .critical { color: #b00020; font-weight: bold; }
+    .high { color: #d17b00; font-weight: bold; }
+    .medium { color: #555; }
+    #apiKeyInput { padding: 0.4rem; width: 300px; margin-bottom: 1rem; }
+    button { padding: 0.4rem 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Incident Tracker Dashboard</h1>
+
+  <input type="password" id="apiKeyInput" placeholder="Enter API key" />
+  <button onclick="loadData()">Load</button>
+
+  <h2>Servers</h2>
+  <table id="serversTable">
+    <thead><tr><th>Name</th><th>IP</th><th>Status</th><th>Last Checked</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Incidents</h2>
+  <table id="incidentsTable">
+    <thead><tr><th>Title</th><th>Severity</th><th>Status</th><th>Created</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function loadData() {
+      const apiKey = document.getElementById('apiKeyInput').value;
+      const headers = { 'x-api-key': apiKey };
+
+      const serversRes = await fetch('/servers/', { headers });
+      const servers = await serversRes.json();
+      const serversBody = document.querySelector('#serversTable tbody');
+      serversBody.innerHTML = servers.map(s => `
+        <tr>
+          <td>${s.name}</td>
+          <td>${s.ip ?? '-'}</td>
+          <td>${s.status}</td>
+          <td>${s.last_checked ?? 'never'}</td>
+        </tr>
+      `).join('');
+
+      const incidentsRes = await fetch('/incidents/', { headers });
+      const incidents = await incidentsRes.json();
+      const incidentsBody = document.querySelector('#incidentsTable tbody');
+      incidentsBody.innerHTML = incidents.map(i => `
+        <tr>
+          <td>${i.title}</td>
+          <td class="${i.severity}">${i.severity}</td>
+          <td>${i.status}</td>
+          <td>${new Date(i.created_at).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
