@@ -27,3 +27,19 @@ def get_server(server_id: int, db: Session = Depends(get_db)):
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
     return server
+
+@router.delete("/{server_id}")
+def delete_server(server_id: int, db: Session = Depends(get_db)):
+    server = db.query(models.Server).filter(models.Server.id == server_id).first()
+    if not server:
+        raise HTTPException(status_code=404, detail="Server not found")
+
+    # Delete related incidents first (and their logs) to avoid a foreign key error
+    incidents = db.query(models.Incident).filter(models.Incident.server_id == server_id).all()
+    for incident in incidents:
+        db.query(models.IncidentLog).filter(models.IncidentLog.incident_id == incident.id).delete()
+    db.query(models.Incident).filter(models.Incident.server_id == server_id).delete()
+
+    db.delete(server)
+    db.commit()
+    return {"detail": f"Server {server_id} and its related incidents/logs deleted"}

@@ -24,20 +24,28 @@ def run_health_check():
 
         for server in servers:
             status, is_healthy = check_server_health(server)
-
             server.status = status
             server.last_checked = datetime.now(timezone.utc)
 
             if not is_healthy:
-                incident = models.Incident(
-                    server_id=server.id,
-                    title=f"Auto-detected: {server.name} health check failed",
-                    description=f"Simulated health check returned status '{status}'.",
-                    severity="high" if status == "critical" else "medium",
-                    status="open",
-                )
-                db.add(incident)
-                print(f"  -> Incident auto-created for {server.name} ({status})")
+                # Only create a new incident if there isn't already an OPEN one for this server
+                existing_open = db.query(models.Incident).filter(
+                    models.Incident.server_id == server.id,
+                    models.Incident.status == "open"
+                ).first()
+
+                if not existing_open:
+                    incident = models.Incident(
+                        server_id=server.id,
+                        title=f"Auto-detected: {server.name} health check failed",
+                        description=f"Simulated health check returned status '{status}'.",
+                        severity="high" if status == "critical" else "medium",
+                        status="open",
+                    )
+                    db.add(incident)
+                    print(f"  -> New incident created for {server.name} ({status})")
+                else:
+                    print(f"  -> {server.name} still unhealthy, existing incident #{existing_open.id} remains open")
             else:
                 print(f"  -> {server.name} healthy")
 

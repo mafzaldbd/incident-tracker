@@ -40,3 +40,14 @@ def update_incident_status(incident_id: int, status: str, db: Session = Depends(
     db.commit()
     db.refresh(incident)
     return incident
+
+@router.delete("/{incident_id}")
+def delete_incident(incident_id: int, db: Session = Depends(get_db)):
+    incident = db.query(models.Incident).filter(models.Incident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    db.query(models.IncidentLog).filter(models.IncidentLog.incident_id == incident_id).delete()
+    db.delete(incident)
+    db.commit()
+    return {"detail": f"Incident {incident_id} and its logs deleted"}

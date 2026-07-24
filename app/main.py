@@ -22,9 +22,9 @@ scheduler = BackgroundScheduler()
 
 @app.on_event("startup")
 def start_scheduler():
-    scheduler.add_job(run_health_check, "interval", minutes=2)
+    scheduler.add_job(run_health_check, "interval", minutes=15)
     scheduler.start()
-    print("Scheduler started — health checks every 2 minutes.")
+    print("Scheduler started — health checks every 15 minutes.")
 
 
 @app.on_event("shutdown")
