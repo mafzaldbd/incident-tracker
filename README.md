@@ -27,6 +27,10 @@ Python, FastAPI, SQLAlchemy, PostgreSQL, APScheduler
 4. `uvicorn app.main:app --reload`
 5. Visit `/docs` for the API, `/dashboard` for the UI
 
+## Running with Docker
+1. `docker build -t incident-tracker .`
+2. `docker run -p 8000:8000 --env-file .env incident-tracker`
+
 ## What I'd add next
 - Terraform to provision the database/hosting as code
 - Real health checks (HTTP ping / server agent) instead of simulated data
