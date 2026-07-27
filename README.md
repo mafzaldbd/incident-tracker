@@ -3,6 +3,12 @@
 A backend system for tracking server health and incidents, inspired by 
 enterprise ITSM tools (ServiceNow) I used daily in a cloud operations role.
 
+## Live links
+- **API Docs:** https://incident-tracker-93cm.onrender.com/docs
+- **Dashboard (requires API key):** https://incident-tracker-93cm.onrender.com/dashboard
+
+*Note: hosted on Render's free tier, so the first request after inactivity may take 30-60 seconds to wake up.*
+
 ## Why I built this
 At Infosys, I manually monitored AWS infrastructure and logged incidents 
 in ServiceNow. This project automates that same workflow: it monitors 
@@ -16,9 +22,10 @@ through resolution — the system I used to operate, now built by me.
   incidents on failure — no manual monitoring required
 - API key authentication
 - Simple dashboard for viewing live server/incident status
+- Containerized with Docker for consistent, portable deployment
 
 ## Tech stack
-Python, FastAPI, SQLAlchemy, PostgreSQL, APScheduler
+Python, FastAPI, SQLAlchemy, PostgreSQL, APScheduler, Docker
 
 ## Running locally
 1. Clone the repo, create a virtual environment, `pip install -r requirements.txt`
@@ -31,7 +38,11 @@ Python, FastAPI, SQLAlchemy, PostgreSQL, APScheduler
 1. `docker build -t incident-tracker .`
 2. `docker run -p 8000:8000 --env-file .env incident-tracker`
 
+## Related project
+Infrastructure provisioning for this kind of system, practiced separately in Terraform: 
+[terraform-s3-demo](https://github.com/mafzaldbd/terraform-s3-demo)
+
 ## What I'd add next
-- Terraform to provision the database/hosting as code
+- CI/CD pipeline (GitHub Actions) to automatically build and deploy on every push
 - Real health checks (HTTP ping / server agent) instead of simulated data
 - Kubernetes deployment for the API layer
