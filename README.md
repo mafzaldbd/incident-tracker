@@ -42,7 +42,12 @@ Python, FastAPI, SQLAlchemy, PostgreSQL, APScheduler, Docker
 Infrastructure provisioning for this kind of system, practiced separately in Terraform: 
 [terraform-s3-demo](https://github.com/mafzaldbd/terraform-s3-demo)
 
+## CI/CD
+Every push to `main` automatically triggers a GitHub Actions workflow that builds 
+the Docker image, catching broken builds before deployment. See 
+`.github/workflows/docker-build.yml`.
+
 ## What I'd add next
-- CI/CD pipeline (GitHub Actions) to automatically build and deploy on every push
 - Real health checks (HTTP ping / server agent) instead of simulated data
 - Kubernetes deployment for the API layer
+- Extend CI pipeline to run automated tests before the build step
