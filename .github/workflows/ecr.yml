@@ -27,7 +27,7 @@ jobs:
         if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: PASTE_ROLE_ARN_HERE
+          role-to-assume: arn:aws:iam::034866041867:role/github-actions-ecr-push
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to ECR
