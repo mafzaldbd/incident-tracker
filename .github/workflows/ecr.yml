@@ -1,0 +1,46 @@
+name: Build and push to ECR
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: vpc-ec2-dev-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t incident-tracker:${{ github.sha }} .
+
+      - name: Configure AWS credentials
+        if: github.event_name == 'push'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: PASTE_ROLE_ARN_HERE
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to ECR
+        if: github.event_name == 'push'
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag and push
+        if: github.event_name == 'push'
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          docker tag incident-tracker:${{ github.sha }} $REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker tag incident-tracker:${{ github.sha }} $REGISTRY/$ECR_REPOSITORY:latest
+          docker push $REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker push $REGISTRY/$ECR_REPOSITORY:latest
