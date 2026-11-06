@@ -27,10 +27,11 @@ through resolution — the system I used to operate, now built by me.
 - Simple dashboard for viewing live server/incident status
 - Containerized with Docker for consistent, portable deployment
 - CI/CD pipeline that builds the image and pushes it to Amazon ECR using GitHub OIDC (no stored AWS keys)
+- Also deployed on AWS (EC2 with a private RDS database and Secrets Manager) using Terraform
 
 ## Tech stack
 
-Python, FastAPI, SQLAlchemy, PostgreSQL, APScheduler, Docker, GitHub Actions, Amazon ECR
+Python, FastAPI, SQLAlchemy, PostgreSQL, APScheduler, Docker, GitHub Actions, Amazon ECR, Terraform, AWS (EC2, RDS, Secrets Manager)
 
 ## Running locally
 
@@ -68,13 +69,14 @@ The run is shown in two screenshots, because the steps didn't fit in one.
 
 ![Image in Amazon ECR](docs/ecr-image.png)
 
-## Related project
+## Deployment on AWS
 
-The AWS infrastructure for this kind of system (VPC, subnets, EC2, ECR, and a private RDS database), built with reusable Terraform modules, separate dev and prod environments, and a CI pipeline: [terraform-aws-vpc-ec2](https://github.com/mafzaldbd/terraform-aws-vpc-ec2)
+The same image runs on an EC2 instance, connected to a private RDS PostgreSQL database, with credentials read from AWS Secrets Manager. The infrastructure is provisioned with reusable Terraform modules, dev and prod environments, and S3 remote state: [terraform-aws-vpc-ec2](https://github.com/mafzaldbd/terraform-aws-vpc-ec2)
+
+The AWS deployment is created for testing and destroyed afterwards to avoid cost, so the always-on demo is the Render link above.
 
 ## What I'd add next
 
-- Run the container on EC2 connected to RDS, provisioned by the Terraform project above
 - Real health checks (HTTP ping / server agent) instead of simulated data
 - Prometheus and Grafana monitoring
-- Extend the CI pipeline to run automated tests before the build step
+- Automated tests (pytest) in the CI pipeline before the build step
