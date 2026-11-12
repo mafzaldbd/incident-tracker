@@ -75,6 +75,39 @@ The same image runs on an EC2 instance, connected to a private RDS PostgreSQL da
 
 The AWS deployment is created for testing and destroyed afterwards to avoid cost, so the always-on demo is the Render link above.
 
+## Running on Kubernetes (local)
+
+The app also runs on a local [kind](https://kind.sigs.k8s.io/) cluster using the manifests in `k8s/`: a Deployment with 2 replicas, a Service, readiness and liveness probes, resource requests and limits, and a Postgres Deployment. Credentials live in a Kubernetes Secret created at deploy time and are never committed.
+
+```bash
+kind create cluster --name sre-lab
+docker build -t incident-tracker:local .
+kind load docker-image incident-tracker:local --name sre-lab
+
+PASS=$(openssl rand -hex 12)
+kubectl create secret generic app-secrets \
+  --from-literal=POSTGRES_PASSWORD="$PASS" \
+  --from-literal=API_KEY="$(openssl rand -hex 16)" \
+  --from-literal=DATABASE_URL="postgresql://incident:${PASS}@postgres:5432/incidents"
+
+kubectl apply -f k8s/postgres.yaml
+kubectl apply -f k8s/app.yaml
+kubectl exec deploy/incident-tracker -- python create_tables.py
+kubectl port-forward svc/incident-tracker 8080:80
+```
+
+What I tested: deploying the app and the database on the cluster, opening the API docs through the forwarded port, and creating and listing servers with the API key.
+
+![Pods, deployments and services](docs/k8s-resources.png)
+
+![App running on the cluster](docs/k8s-app-running.png)
+
+Notes from the exercise:
+
+- The readiness probe only calls `/`, so pods report Ready even when the database is down. A production setup would use a health endpoint that checks the database connection.
+- In my environment the kind node could not resolve DNS, so the `postgres:16` image had to be loaded from the host instead of pulled by the cluster.
+- This is a local learning setup, not a production cluster.
+
 ## What I'd add next
 
 - Real health checks (HTTP ping / server agent) instead of simulated data
