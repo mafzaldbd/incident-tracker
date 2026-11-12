@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-tracker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: incident-tracker
+  template:
+    metadata:
+      labels:
+        app: incident-tracker
+    spec:
+      containers:
+        - name: app
+          image: incident-tracker:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DATABASE_URL
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: API_KEY
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-tracker
+spec:
+  selector:
+    app: incident-tracker
+  ports:
+    - port: 80
+      targetPort: 8000
