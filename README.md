@@ -96,15 +96,21 @@ kubectl exec deploy/incident-tracker -- python create_tables.py
 kubectl port-forward svc/incident-tracker 8080:80
 ```
 
-What I tested: deploying the app and the database on the cluster, opening the API docs through the forwarded port, and creating and listing servers with the API key.
-
 ![Pods, deployments and services](docs/k8s-resources.png)
 
 ![App running on the cluster](docs/k8s-app-running.png)
 
-Notes from the exercise:
+### What I tested
 
-- The readiness probe only calls `/`, so pods report Ready even when the database is down. A production setup would use a health endpoint that checks the database connection.
+- **Scaling:** scaled the app from 2 to 4 replicas and back with `kubectl scale`.
+- **Self-healing:** deleted the app pods and watched the Deployment recreate them.
+- **Failed rollout and rollback:** rolled out a non-existent image. The new pod failed to start while the existing pods kept serving, and `kubectl rollout undo` restored the working version.
+- **Dependency failure:** scaled Postgres to zero. The app pods stayed Ready and `/` still returned 200, but requests that needed the database failed.
+- **Debugging:** used `kubectl get`, `describe`, `logs`, and `get events` to find causes.
+
+### Notes
+
+- The readiness probe only calls `/`, so a pod can report Ready while its database is down (I reproduced this by scaling Postgres to zero). A production setup would use a health endpoint that checks the database connection.
 - In my environment the kind node could not resolve DNS, so the `postgres:16` image had to be loaded from the host instead of pulled by the cluster.
 - This is a local learning setup, not a production cluster.
 
